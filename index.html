@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delay Lama</title>
+    <script src="C:\Users\patri\Desktop\delay lama\assets\animation\Moody_Llama[1].gif"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        /* CSS Variables for the new color palette */
+        :root {
+            --primary-color: #f99b96;
+            --secondary-color: #fcdcdc;
+            --light-bg: #fbf3f2;
+            --accent-1: #ecb4ac;
+            --accent-2: #4898ab;
+            --primary-dark: #f0857f;
+            --primary-light: #fbb3ae;
+            --text-dark: #4a5568;
+            --text-light: #718096;
+            --white: #ffffff;
+            --shadow-light: rgba(249, 155, 150, 0.2);
+            --shadow-medium: rgba(249, 155, 150, 0.3);
+        }
+        
+        /* Loading Screen Styles */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--light-bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .loading-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-animation {
+            width: 300px;
+            height: 300px;
+            margin-bottom: 30px;
+        }
+
+        .loading-caption {
+            color: var(--accent-2);
+            font-family: 'Inter', sans-serif;
+            font-size: 1.2em;
+            font-weight: 400;
+            text-align: center;
+            max-width: 400px;
+            line-height: 1.5;
+            margin: 0 20px;
+        }
+
+        /* Hide main content during loading */
+        .main-content {
+            opacity: 0;
+            transition: opacity 0.5s ease-in;
+        }
+
+        .main-content.loaded {
+            opacity: 1;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-1) 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--light-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px var(--shadow-light);
+            max-width: 500px;
+            width: 100%;
+            border: 2px solid var(--secondary-color);
+        }
+
+        h1 {
+            color: var(--text-dark);
+            font-size: 2.2em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-light);
+            font-size: 1.1em;
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+
+        .timer-display {
+            font-size: 3.5em;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 30px 0;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 2px 4px var(--shadow-light);
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: var(--white);
+            border: none;
+            padding: 16px 32px;
+            font-size: 1.2em;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px var(--shadow-medium);
+            margin: 10px;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px var(--shadow-medium);
+            background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+        }
+
+        .start-btn:active {
+            transform: translateY(0);
+        }
+
+        .start-btn:disabled {
+            background: var(--secondary-color);
+            color: var(--text-light);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .task-display {
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-1));
+            padding: 25px;
+            border-radius: 16px;
+            margin: 25px 0;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 20px var(--shadow-light);
+            border: 2px solid var(--accent-1);
+        }
+
+        .task-text {
+            font-size: 1.3em;
+            font-weight: 500;
+            color: var(--text-dark);
+            line-height: 1.5;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--secondary-color);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status {
+            color: var(--text-light);
+            font-size: 1.1em;
+            margin: 15px 0;
+            font-weight: 400;
+        }
+
+        .time-selector {
+            margin: 20px 0;
+        }
+
+        .time-selector label {
+            color: var(--text-dark);
+            font-weight: 500;
+            margin-right: 10px;
+        }
+
+        .time-selector select {
+            padding: 8px 12px;
+            border: 2px solid var(--secondary-color);
+            border-radius: 8px;
+            font-size: 1em;
+            background: var(--white);
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+        }
+
+        .time-selector select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--shadow-light);
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 var(--shadow-medium);
+            }
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(249, 155, 150, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(249, 155, 150, 0);
+            }
+        }
+
+        .completion-message {
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-1));
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            color: var(--text-dark);
+            font-weight: 500;
+            border: 2px solid var(--accent-1);
+        }
+
+        .redirect-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-2));
+            color: var(--white);
+            border: none;
+            padding: 18px 32px;
+            font-size: 1.3em;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px var(--shadow-medium);
+            margin: 20px auto;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .redirect-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 35px var(--shadow-medium);
+            background: linear-gradient(135deg, var(--primary-light), var(--accent-2));
+        }
+
+        .redirect-btn:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        .redirect-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .redirect-btn:hover::before {
+            left: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-animation">
+            <lottie-player 
+                src="C:\Users\patri\Desktop\delay lama\assets\animation\Moody_Llama[1].gif"
+                background="transparent"
+                speed="1"
+                style="width: 100%; height: 100%;"
+                loop
+                autoplay>
+            </lottie-player>
+        </div>
+        <div class="loading-caption">
+            Brewing the finest cup of procrastination… hold tight, it's almost perfectly pointless.
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <div class="container">
+            <h1>Delay Lama</h1>
+            <p class="subtitle">Embrace the art of perfectly planned distraction</p>
+            
+            <div class="time-selector">
+                <label for="timerDuration">Distraction Duration:</label>
+                <select id="timerDuration">
+                    <option value="300">5 minutes</option>
+                    <option value="180">3 minutes</option>
+                    <option value="600">10 minutes</option>
+                    <option value="900">15 minutes</option>
+                    <option value="60"> 1 minute (demo)</option>
+                </select>
+            </div>
+
+            <div class="timer-display" id="timerDisplay">Ready</div>
+            
+            <button class="start-btn" id="startBtn" onclick="startDistraction()">
+                Start Distracting
+            </button>
+            
+            <div class="status" id="status">Click the button to begin your perfectly planned procrastination</div>
+            
+            <div class="task-display" id="taskDisplay" style="display: none;">
+                <div class="task-text" id="taskText"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Loading screen functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            const mainContent = document.getElementById('mainContent');
+            
+            // Show loading screen for 3 seconds, then transition to main content
+            setTimeout(() => {
+                loadingScreen.classList.add('fade-out');
+                mainContent.classList.add('loaded');
+                
+                // Remove loading screen from DOM after transition
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 500);
+            }, 3000);
+        });
+
+        let timerInterval;
+        let statusInterval;
+        let timeLeft = 0;
+        let isRunning = false;
+        let displayTimeLeft = 0; // Time shown to user
+        let actualTimeLeft = 0;  // Real time running internally
+
+        // Funny waiting messages that change randomly while timer runs
+        const waitingMessages = [
+            "Pretend you're working hard...",
+            "Don't blink, something important might happen...",
+            "Your tea is judging you...",
+            "This timer is 78% more productive than you.",
+            "Counting down to maximum procrastination...",
+            "Your plants are watching you...",
+            "The internet misses you already...",
+            "Time is just a social construct anyway...",
+            "Your future self will thank you for this...",
+            "This is definitely not a waste of time...",
+            "Channeling your inner sloth...",
+            "The universe is conspiring in your favor...",
+            "Your productivity can wait...",
+            "This is what peak performance looks like...",
+            "Your to-do list is getting anxious...",
+            "Time flies when you're doing nothing...",
+            "Your calendar is having an existential crisis...",
+            "This is the most important thing you'll do today...",
+            "Your deadlines are getting nervous...",
+            "You're basically meditating right now..."
+        ];
+
+        function getRandomWaitingMessage() {
+            return waitingMessages[Math.floor(Math.random() * waitingMessages.length)];
+        }
+
+        function updateStatusMessage() {
+            if (isRunning) {
+                const status = document.getElementById('status');
+                status.textContent = getRandomWaitingMessage();
+            }
+        }
+
+        function playFunnySound() {
+            try {
+                const audio = new Audio('assets/audio/boing.mp3');
+                audio.volume = 0.7;
+                audio.play().catch(() => {
+                    // Fallback to horn sound if boing fails
+                    const fallbackAudio = new Audio('assets/audio/funny-horn.mp3');
+                    fallbackAudio.volume = 0.5;
+                    fallbackAudio.play().catch(() => {
+                        console.log('Sound play failed - user interaction required');
+                    });
+                });
+            } catch (error) {
+                console.log('Sound not available');
+            }
+        }
+
+        function redirectToUselessWeb() {
+            // Redirect to theuselessweb.com in a new tab
+            window.open('https://theuselessweb.com/', '_blank');
+        }
+
+        async function startDistraction() {
+            if (isRunning) return;
+            
+            const selectedDuration = parseInt(document.getElementById('timerDuration').value);
+            
+            // Set up time dilation: timer runs at half speed
+            displayTimeLeft = selectedDuration;  // What user sees
+            actualTimeLeft = selectedDuration;   // What actually runs (same as display)
+            timeLeft = displayTimeLeft;  // For compatibility with existing code
+            
+            isRunning = true;
+            
+            const startBtn = document.getElementById('startBtn');
+            const status = document.getElementById('status');
+            const taskDisplay = document.getElementById('taskDisplay');
+            
+            startBtn.disabled = true;
+            startBtn.textContent = 'Distracting...';
+            status.textContent = getRandomWaitingMessage();
+            taskDisplay.style.display = 'none';
+            
+            // Start timer at half speed (update every 2 seconds instead of 1)
+            timerInterval = setInterval(updateTimer, 2000);
+            
+            // Start status message rotation (also slowed down proportionally)
+            statusInterval = setInterval(updateStatusMessage, 6000);
+            
+            updateTimerDisplay();
+        }
+
+        function updateTimer() {
+            actualTimeLeft--; // Decrease actual time
+            displayTimeLeft--; // Decrease display time (both at same rate, but slower)
+            
+            updateTimerDisplay();
+            
+            // Complete when display time reaches 0
+            if (displayTimeLeft <= 0) {
+                clearInterval(timerInterval);
+                clearInterval(statusInterval);
+                showCompletion();
+            }
+        }
+
+        function updateTimerDisplay() {
+            // Always show the display time (what user selected)
+            const minutes = Math.floor(displayTimeLeft / 60);
+            const seconds = displayTimeLeft % 60;
+            const display = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('timerDisplay').textContent = display;
+        }
+
+        function showCompletion() {
+            // Play sound immediately when timer completes
+            playFunnySound();
+            
+            const status = document.getElementById('status');
+            const startBtn = document.getElementById('startBtn');
+            const timerDisplay = document.getElementById('timerDisplay');
+            
+            // Show completion message
+            timerDisplay.textContent = 'Time\'s Up!';
+            timerDisplay.classList.add('pulse');
+            
+            // Create sarcastic button text
+            const buttonTexts = [
+                "Go Ahead, Waste Even More Time 🚀",
+                "Press Here if Productivity is Overrated 💅",
+                "I Insist, Please Waste More Time ⏳",
+                "Because You Obviously Have Nothing Better to Do 😴",
+                "Click This If You Hate Being Productive 🎭",
+                "Your Deadlines Can Wait, Right? 🤷‍♀️",
+                "One More Distraction Won't Hurt 🎪",
+                "Productivity is So Last Year 💃"
+            ];
+            
+            const randomButtonText = buttonTexts[Math.floor(Math.random() * buttonTexts.length)];
+            
+            status.innerHTML = `
+                <div class="completion-message">🎯 Your timer is complete! Now what?</div>
+                <button class="redirect-btn" onclick="redirectToUselessWeb()">${randomButtonText}</button>
+            `;
+            
+            // Reset button
+            startBtn.disabled = false;
+            startBtn.textContent = 'Start Another Distraction';
+            isRunning = false;
+            
+            // Remove pulse animation after a few seconds
+            setTimeout(() => {
+                timerDisplay.classList.remove('pulse');
+            }, 4000);
+        }
+
+        // Reset timer display when duration changes
+        document.getElementById('timerDuration').addEventListener('change', function() {
+            if (!isRunning) {
+                document.getElementById('timerDisplay').textContent = 'Ready';
+                document.getElementById('taskDisplay').style.display = 'none';
+                document.getElementById('status').textContent = 'Click the button to begin your perfectly planned procrastination';
+            }
+        });
+    </script>
+</body>
+</html>
