@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Delay Lama</title>
-    <script src="C:\Users\patri\Desktop\delay lama\assets\animation\Moody_Llama[1].gif"></script>
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
         
@@ -49,6 +49,16 @@
             width: 300px;
             height: 300px;
             margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loading-animation img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 12px;
         }
 
         .loading-caption {
@@ -306,19 +316,17 @@
     <!-- Loading Screen -->
     <div class="loading-screen" id="loadingScreen">
         <div class="loading-animation">
-            <lottie-player 
-                src="C:\Users\patri\Desktop\delay lama\assets\animation\Moody_Llama[1].gif"
-                background="transparent"
-                speed="1"
-                style="width: 100%; height: 100%;"
-                loop
-                autoplay>
-            </lottie-player>
+            <img src="assets/animation/Moody_Llama[1].gif" alt="Loading Animation">
         </div>
         <div class="loading-caption">
             Brewing the finest cup of procrastination… hold tight, it's almost perfectly pointless.
         </div>
     </div>
+
+    <!-- Loading Audio -->
+    <audio id="loadingAudio" preload="auto" loop>
+        <source src="assets/audio/ytmp3free.cc_hd-squidward-walking-sound-effect-youtubemp3free.org.mp3" type="audio/mpeg">
+    </audio>
 
     <!-- Main Content -->
     <div class="main-content" id="mainContent">
@@ -333,7 +341,7 @@
                     <option value="180">3 minutes</option>
                     <option value="600">10 minutes</option>
                     <option value="900">15 minutes</option>
-                    <option value="60"> 1 minute (demo)</option>
+                    <option value="30"> 30 seconds (demo)</option>
                 </select>
             </div>
 
@@ -352,13 +360,51 @@
     </div>
 
     <script>
-        // Loading screen functionality
+        // Loading screen functionality with audio
         document.addEventListener('DOMContentLoaded', function() {
             const loadingScreen = document.getElementById('loadingScreen');
             const mainContent = document.getElementById('mainContent');
+            const loadingAudio = document.getElementById('loadingAudio');
+            
+            // Start audio playback when page loads
+            function startLoadingAudio() {
+                try {
+                    loadingAudio.volume = 0.6; // Set initial volume
+                    loadingAudio.play().catch(error => {
+                        console.log('Audio autoplay failed - user interaction required:', error);
+                    });
+                } catch (error) {
+                    console.log('Audio not available:', error);
+                }
+            }
+            
+            // Fade out audio smoothly
+            function fadeOutAudio() {
+                const fadeOutDuration = 1000; // 1 second fade
+                const fadeSteps = 20;
+                const volumeStep = loadingAudio.volume / fadeSteps;
+                const stepDuration = fadeOutDuration / fadeSteps;
+                
+                const fadeInterval = setInterval(() => {
+                    if (loadingAudio.volume > volumeStep) {
+                        loadingAudio.volume -= volumeStep;
+                    } else {
+                        loadingAudio.volume = 0;
+                        loadingAudio.pause();
+                        clearInterval(fadeInterval);
+                    }
+                }, stepDuration);
+            }
+            
+            // Start audio immediately
+            startLoadingAudio();
             
             // Show loading screen for 3 seconds, then transition to main content
             setTimeout(() => {
+                // Fade out audio
+                fadeOutAudio();
+                
+                // Fade out loading screen
                 loadingScreen.classList.add('fade-out');
                 mainContent.classList.add('loaded');
                 
